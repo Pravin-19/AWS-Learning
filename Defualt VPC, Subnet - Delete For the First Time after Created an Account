@@ -1,0 +1,36 @@
+Delete VPC(Not-Attached) and Subnet:
+
+#!/bin/bash
+
+# Get a list of all regions
+regions=$(aws ec2 describe-regions --query "Regions[].RegionName" --output text)
+
+# Iterate through each region
+for region in $regions; do
+    echo "Deleting VPCs and associated resources in region $region..."
+
+    # Get a list of VPC IDs in the region
+    vpc_ids=$(aws ec2 describe-vpcs --region $region --query "Vpcs[].VpcId" --output text)
+    
+    # Delete subnets first
+    for vpc_id in $vpc_ids; do
+        subnet_ids=$(aws ec2 describe-subnets --region $region --filters "Name=vpc-id,Values=$vpc_id" --query "Subnets[].SubnetId" --output text)
+        for subnet_id in $subnet_ids; do
+            if aws ec2 delete-subnet --region $region --subnet-id $subnet_id; then
+                echo "Deleted subnet $subnet_id"
+            else
+                echo "Not Deleted subnet $subnet_id"
+            fi
+        done
+    done
+
+    # Delete VPCs
+    for vpc_id in $vpc_ids; do
+        if aws ec2 delete-vpc --region $region --vpc-id $vpc_id; then
+            echo "Deleted VPC $vpc_id"
+        else
+            echo "Not Deleted VPC $vpc_id"
+        fi
+    done
+
+done
