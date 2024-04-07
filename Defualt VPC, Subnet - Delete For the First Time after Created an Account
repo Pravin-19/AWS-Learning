@@ -1,4 +1,4 @@
-Delete VPC(Not-Attached) and Subnet:
+Delete VPC(Not-Attached) and Subnet(Not Attached):
 
 #!/bin/bash
 
